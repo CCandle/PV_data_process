@@ -1,17 +1,20 @@
 import math
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+import os
+from datetime import datetime
 
 
 class DataPlotter:
     """数据绘图类"""
 
-    def __init__(self, config_manager):
+    def __init__(self, config_manager, fig_out=None):
         self.config = config_manager
         self.cols_per_row = int(self.config.get_draw_config("cols_per_row", 2))
         self.xaxis_interval = self.config.get_draw_config("xaxis_interval", 5)
         self.column_groups = self.config.get_column_groups()
         self._setup_plot_style()
+        self.fig_out = fig_out
         self.linked_axes = None
 
     def _setup_plot_style(self):
@@ -35,6 +38,9 @@ class DataPlotter:
             rows, cols, squeeze=False, figsize=(6 * cols, 3 * rows)
         )
 
+        # 最大化图窗 (MacBook兼容)
+        self._maximize_figure()
+
         time_range = df["Time(s)"].max() - df["Time(s)"].min()
         self.linked_axes = self.LinkedAxes(df, self.xaxis_interval)
 
@@ -52,6 +58,32 @@ class DataPlotter:
             self._plot_group(ax, group_config, df, time_range)
 
         self._finalize_plot(fig, axes, n_plots, cols, rows)
+
+    def _maximize_figure(self):
+        """最大化图窗 (MacBook兼容)"""
+        try:
+            # 尝试使用不同后端的方法最大化窗口
+            backend = plt.get_backend()
+            fig_manager = plt.get_current_fig_manager()
+
+            if backend == "TkAgg":
+                # TkAgg后端
+                fig_manager.window.state("zoomed")  # Windows
+            elif backend == "Qt5Agg" or backend == "Qt4Agg":
+                # Qt后端
+                fig_manager.window.showMaximized()
+            elif backend == "MacOSX":
+                # MacOSX后端 - 使用全屏
+                fig_manager.window.set_window_state("zoomed")
+            else:
+                # 其他后端，尝试设置大尺寸
+                fig_manager.resize(
+                    fig_manager.window.maxsize()[0], fig_manager.window.maxsize()[1]
+                )
+        except Exception as e:
+            print(f"无法最大化窗口: {e}")
+            # 如果最大化失败，至少设置一个大尺寸
+            plt.gcf().set_size_inches(16, 10)
 
     def _validate_columns(self, df):
         all_plot_cols = [
@@ -146,7 +178,41 @@ class DataPlotter:
         plt.subplots_adjust(
             left=0.033, right=0.99, bottom=0.05, top=0.98, wspace=0.07, hspace=0.15
         )
+
+        # 自动保存图片
+        self._auto_save_figure(fig)
+
         plt.show()
+
+    def _auto_save_figure(self, fig):
+        """自动保存图片到data/waves/文件夹"""
+        try:
+            # 创建保存目录
+            save_dir = "data/waves"
+            os.makedirs(save_dir, exist_ok=True)
+
+            if self.fig_out:
+                # 如果提供了文件名，使用它
+                filepath = self.fig_out
+            else:
+                # 生成文件名（包含时间戳）
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"wave_plot_{timestamp}.png"
+                filepath = os.path.join(save_dir, filename)
+
+            # 保存图片（高分辨率）
+            fig.savefig(
+                filepath,
+                dpi=300,
+                bbox_inches="tight",
+                facecolor="white",
+                edgecolor="none",
+            )
+
+            print(f"图片已保存至: {filepath}")
+
+        except Exception as e:
+            print(f"保存图片时出错: {e}")
 
     class LinkedAxes:
         """联动坐标轴"""

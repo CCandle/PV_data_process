@@ -34,7 +34,9 @@ def main():
 
     # 绘图
     if len(df) > 0:
-        plotter = DataPlotter(config_manager)
+        fig_out = os.path.splitext(os.path.basename(input_file))[0] + ".png"
+        fig_out = os.path.join("data", "waves", fig_out)
+        plotter = DataPlotter(config_manager, fig_out)
         plotter.plot(df)
 
     # except Exception as e:
