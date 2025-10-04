@@ -1,6 +1,8 @@
 data/*
 !data/raw/
+!data/processed/
 data/raw/*
+data/processed/*
 !data/raw/sample.dat
 **/__pycache__
 *.pyc
