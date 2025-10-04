@@ -176,7 +176,7 @@ python main.py data/raw/sample.dat config/data_config.yml
   - BoostVolt_sum
 ```
 
-输出波形 ![示例波形](assets/images/sample.png)
+输出波形 ![示例波形](data/waves/sample.png)
 
 ---
 
