@@ -38,8 +38,8 @@
 
 ### 1. 克隆项目
 ```bash
-git clone https://github.com/yourname/yourproject.git
-cd yourproject
+git clone https://github.com/CCandle/PV_data_process.git
+cd PV_data_process
 ```
 
 ### 2. 安装依赖
@@ -54,29 +54,68 @@ pip install -r requirements.txt
 配置文件位于 config/data_config.yml，用于定义数据列及规则。
 示例：
 ```yml
-columns:
-  BoostVolt1:
-    ignore: []
-  BoostVolt2:
-    ignore: []
-  BoostCurr1(A):
-    ignore: [326.67, 204.79]   # 忽略异常值
-  Vbalance.Uref(V):
-    ignore: []
-  Iboost_PICtl.Out:
-    ignore: []
-  d:
-    ignore: []
-  delta_D:
-    ignore: []
-  InvFault:
-    ignore: []
+channels_config:
+  - source: BoostVolt1
+  - source: BoostVolt2
+  - source: BoostCurr1(A)
+    transform: "lambda x: x * 0.01"
+    filter_vals: [327.67, 204.79]
+  - source: Vbalance.Uref(V)
+    transform: "lambda x: x * 0.01"
+  - source: Iboost_PICtl.Out
+    transform: "lambda x: x * 0.01"
+  - source: dd1
+    transform: "lambda x: x * 0.001"
+  - source: dd2
+    transform: "lambda x: 1 - x * 0.001"
+  - source: InvFault
+  - source: d
+    transform: "lambda x: x * 0.001"
+  - source: delta_D
+    transform: "lambda x: x * 0.001"
+  - source: "100"
+  - source: "500"
+  - source: igbtTemp
+  - source: "7000"
+  - source:
+      expression: "BoostVolt1 - BoostVolt2"
+      name: BoostVolt_diff
+  - source:
+      expression: "BoostVolt1 + BoostVolt2"
+      name: BoostVolt_sum
 
-derived_columns:
-  Power: "lambda row: row['BoostVolt1'] * row['BoostCurr1(A)']"
+draw_config:
+  column_groups:
+    - title: "Voltage of Capacitors"
+      columns: ["BoostVolt1", "BoostVolt2"]
+      yaxis: [180, 280]
+    - title: "Voltage Difference"
+      columns: ["BoostVolt_diff"]
+      yaxis: [-50, 50]
+    - title: "Boost Voltage Sum"
+      columns: ["BoostVolt_sum"]
+      yaxis: [420, 520]
+    - title: "Inductor Current"
+      columns: ["BoostCurr1(A)"]
+    - title: "Control Output"
+      columns: ["Iboost_PICtl.Out"]
+    - title: "Duty Cycle"
+      columns: ["dd1", "dd2"]
+    - title: "Reference Voltage"
+      columns: ["Vbalance.Uref(V)"]
+  cols_per_row: 2
+  start_time: 0
+  end_time: 100
+  xaxis_interval: auto 
+
+settings:
+  fs: 20000.0
+  header: 0x7EEE
+  tail: 0x7FFF
 ```
-+ columns：定义原始列及需要忽略的值。
-+ derived_columns：定义新列（通过表达式计算）。
++ channels_config：定义原始列、数据变换、忽略值或表达式计算。
++ draw_config：配置绘图的分组、标题、坐标轴范围。
++ settings：定义采样频率及数据帧格式。
 
 ---
 
@@ -86,9 +125,9 @@ derived_columns:
 ```bash
 python main.py
 ```
-指定输入文件和输出路径
+指定输入文件和配置文件
 ```bash
-python main.py input.dat output.csv
+python main.py data/raw/sample.dat config/data_config.yml
 ```
 
 ---
@@ -100,22 +139,58 @@ python main.py input.dat output.csv
 ---
 
 ## 📖 示例
-输入文件：`data/raw/2025-10-03 20-56-44Detaildata.dat`
+输入文件：`data/raw/sample.dat`
 运行：
 ```bash
-python main.py
+python main.py data/raw/sample.dat config/data_config.yml
 ```
 输出：
-+清洗后的数据保存为：
-`data/processed/2025-10-03 20-56-44Detaildata.csv`
-+终端打印：
++ 清洗后的数据保存为：
+`sample.csv`
++ 终端打印：
 ```bash
-原始数据点数: 13824000
-总帧数: 864000
+未指定输入文件，默认使用最新文件: data/raw/sample.dat
+已加载配置文件: config/data_config.yml
+原始数据点数: 13824000, 总帧数: 864000
+帧头帧尾筛选: 864000 -> 864000 帧
+时间范围筛选: 864000 -> 864000 帧
 异常值过滤: 864000 -> 863668 行
-已保存到 data/processed/2025-10-03 20-56-44Detaildata.csv
+已保存到 data/processed/sample.csv, 最终数据点数: 863668
+可用数据列:
+  - Time(s)
+  - BoostVolt1
+  - BoostVolt2
+  - BoostCurr1(A)
+  - Vbalance.Uref(V)
+  - Iboost_PICtl.Out
+  - dd1
+  - dd2
+  - InvFault
+  - d
+  - delta_D
+  - 100
+  - 500
+  - igbtTemp
+  - 7000
+  - BoostVolt_diff
+  - BoostVolt_sum
 ```
+
+输出波形 ![示例波形](assets/sample.png)
+
 ---
+
+## 🤝 贡献指南
+欢迎提交 Issue 和 Pull Request！
+建议遵循以下流程：
++ Fork 本仓库
++ 创建功能分支 (`git checkout -b feature/your-feature`)
++ 提交修改 (`git commit -m 'Add some feature'`)
++ 推送分支 (g`it push origin feature/your-feature`)
++ 提交 Pull Request
+
+---
+
 ## 📜 许可证
 
 本项目使用 MIT License，详情见 [LICENSE](LICENSE)。
@@ -123,5 +198,6 @@ python main.py
 ---
 
 ## 👨‍💻 作者
-开发者: [CCandle]()
+开发者: [CCandle](https://github.com/CCandle)
+
 联系方式: 2987794676@qq.com
