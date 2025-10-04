@@ -4,6 +4,10 @@ data/*
 data/raw/*
 data/processed/*
 !data/raw/sample.dat
+assets/*
+!assets/images/
+assets/images/*
+!assets/images/sample.png
 **/__pycache__
 *.pyc
 *.pyo
