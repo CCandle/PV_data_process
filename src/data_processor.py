@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 
 class DataProcessor:
@@ -18,7 +19,7 @@ class DataProcessor:
         self._validate_input_file(input_file)
         frames = self._read_and_validate_data(input_file)
         df = self._extract_valid_data(frames)
-        self._save_csv(df, input_file)
+        # self._save_csv(df, input_file)
         return df
 
     def _validate_input_file(self, input_file):
@@ -126,11 +127,9 @@ class DataProcessor:
             print(f"异常值过滤: {before_len} -> {after_len} 行")
         return df
 
-    def _save_csv(self, df, input_file):
-        csv_out = os.path.splitext(os.path.basename(input_file))[0] + ".csv"
-        csv_out = os.path.join("data", "processed", csv_out)
-        df.to_csv(csv_out, index=False)
-        print(f"已保存到 {csv_out}, 最终数据点数: {len(df)}")
+    def save_csv(self, df, csv_path):
+        df.to_csv(csv_path, index=False)
+        print(f"已保存到 {csv_path}, 最终数据点数: {len(df)}")
         print("可用数据列:")
         for col in df.columns:
             print(f"  - {col}")

@@ -7,7 +7,7 @@ channels_config:
   - source: Vbalance.Uref(V)
     transform: "lambda x: x * 0.01"
   - source: Iboost_PICtl.Out
-    transform: "lambda x: x * 0.01"
+    # transform: "lambda x: x * 0.01"
   - source: dd1
     transform: "lambda x: x * 0.001"
   - source: dd2
@@ -18,8 +18,9 @@ channels_config:
   - source: delta_D
     transform: "lambda x: x * 0.001"
   - source: "deltaT"
-    # transform: "lambda x: x * 0.001"
-  - source: "500"
+    transform: "lambda x: x * 0.00001"
+  - source: "dVpi_output"
+    transform: "lambda x: x * 0.00001"
   - source: igbtTemp
   - source: "7000"
   - source:
@@ -50,6 +51,8 @@ draw_config:
       columns: ["Vbalance.Uref(V)"]
     - title: "deltaT"
       columns: ["deltaT"]
+    - title: "dVpi_output"
+      columns: ["dVpi_output"]
   cols_per_row: 2
   start_time: 0
   end_time: 1000
