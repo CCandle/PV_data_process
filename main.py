@@ -1,6 +1,7 @@
 import sys
 import os
 import glob
+from pathlib import Path
 from src.config_manager import ConfigManager
 from src.data_processor import DataProcessor
 from src.data_plotter import DataPlotter
@@ -32,10 +33,24 @@ def main():
     # 处理数据
     df = processor.process(input_file)
 
+    input_path = Path(input_file)
+
+    if input_path.parent.name == "raw":
+        parent_path = input_path.parent.parent
+    else:
+        parent_path = input_path.parent
+
+    csv_path = parent_path / "processed"
+    csv_path.mkdir(exist_ok=True)
+    csv_out = input_path.stem + ".csv"
+    processor.save_csv(df, csv_path / csv_out)
+
     # 绘图
     if len(df) > 0:
-        fig_out = os.path.splitext(os.path.basename(input_file))[0] + ".png"
-        fig_out = os.path.join("data", "waves", fig_out)
+        fig_path = parent_path / "waves"
+        fig_path.mkdir(exist_ok=True)
+        fig_out = input_path.stem + ".png"
+        fig_out = fig_path / fig_out
         plotter = DataPlotter(config_manager, fig_out)
         plotter.plot(df)
 
