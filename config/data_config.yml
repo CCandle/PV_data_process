@@ -17,7 +17,8 @@ channels_config:
     transform: "lambda x: x * 0.001"
   - source: delta_D
     transform: "lambda x: x * 0.001"
-  - source: "100"
+  - source: "deltaT"
+    # transform: "lambda x: x * 0.001"
   - source: "500"
   - source: igbtTemp
   - source: "7000"
@@ -32,13 +33,13 @@ draw_config:
   column_groups:
     - title: "Voltage of Capacitors"
       columns: ["BoostVolt1", "BoostVolt2"]
-      yaxis: [180, 280]
+      # yaxis: [370, 430]
     - title: "Voltage Difference"
       columns: ["BoostVolt_diff"]
       yaxis: [-50, 50]
     - title: "Boost Voltage Sum"
       columns: ["BoostVolt_sum"]
-      yaxis: [420, 520]
+      # yaxis: [740, 860]
     - title: "Inductor Current"
       columns: ["BoostCurr1(A)"]
     - title: "Control Output"
@@ -47,9 +48,11 @@ draw_config:
       columns: ["dd1", "dd2"]
     - title: "Reference Voltage"
       columns: ["Vbalance.Uref(V)"]
+    - title: "deltaT"
+      columns: ["deltaT"]
   cols_per_row: 2
   start_time: 0
-  end_time: 100
+  end_time: 1000
   xaxis_interval: auto 
 
 settings:
